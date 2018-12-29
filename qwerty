@@ -1,0 +1,15 @@
+open System
+let readFile =
+    IO.File.ReadAllLines ("INPUT.TXT")
+let n = int readFile.[1]
+let hp = int readFile.[0]
+let c = Array.map (fun elem -> int elem) readFile.[2..]
+let fn (hp : int) (n : int) (c : int[]) =
+    let Farr = Array.filter (fun x -> x > 5 = true) c
+    let a = Array.sum Farr
+    match hp, a with
+    |hp, a when hp <= a-> printfn "DEAD"
+    |_, 0 -> printfn "HEALTHY"
+    |hp, a when hp > a -> printfn "WOUNDED"
+    ()
+fn hp n c
