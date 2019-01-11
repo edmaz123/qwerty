@@ -1,0 +1,85 @@
+open System
+
+type Queue<'a> = {
+    enqueue: 'a list
+    dequeue: 'a list
+}
+
+let emptyQueue = { enqueue = []; dequeue = [] }
+
+let enqueue<'a> (item:'a) (queue:Queue<'a>) = {
+    enqueue = item :: queue.enqueue
+    dequeue = queue.dequeue
+}
+
+let dequeue<'a> (queue:Queue<'a>) = 
+    match queue with
+    | { enqueue = e; dequeue = h::t } -> { enqueue = e; dequeue = t }, Some h
+    | { enqueue = e; dequeue = [] } -> 
+        match List.rev e with
+        | h :: t -> { enqueue = []; dequeue = t }, Some h
+        | _ -> { enqueue = []; dequeue = [] }, None
+
+let queueAsSeq (queue:Queue<'a>) =
+    Seq.append queue.dequeue queue.enqueue
+
+type State = {
+    snakeHead: int * int
+    snakeBody: Queue<int * int>
+    rabbits: Set<int * int>
+}
+
+let out char pos = 
+    Console.SetCursorPosition pos
+    printfn "%c" char
+
+let rec mainLoop (s:State) =
+    let newState =
+        
+        let newHead =
+            let hx, hy = s.snakeHead
+            match Console.ReadKey().Key with
+            | ConsoleKey.UpArrow -> Some (hx, hy - 1)
+            | ConsoleKey.LeftArrow -> Some (hx - 1, hy)
+            | ConsoleKey.DownArrow -> Some (hx, hy + 1)
+            | ConsoleKey.RightArrow -> Some (hx + 1, hy)
+            | _ -> None
+
+        match newHead with
+        | Some h2 -> 
+            let body, tail = dequeue s.snakeBody
+            let canMove = (queueAsSeq body) |> Seq.forall (fun t -> t <> h2)
+            if canMove then
+                out 'O' h2
+                out '#' s.snakeHead
+
+                if s.rabbits.Contains h2 then
+                    { 
+                        snakeHead = h2
+                        snakeBody = enqueue s.snakeHead s.snakeBody
+                        rabbits = Set.remove h2 s.rabbits 
+                    }
+                else
+                    Option.iter (out ' ') tail
+                    { s with snakeHead = h2; snakeBody = enqueue s.snakeHead body }
+            else
+                s
+        | _ -> s
+
+    mainLoop newState
+
+let rnd = new Random ()
+
+let startState = {
+    snakeHead = 5, 1
+    snakeBody = emptyQueue 
+    rabbits = Seq.init 50 (fun v -> (rnd.Next (1, 50)), (rnd.Next (1, 25))) |> Set.ofSeq
+}
+
+startState.rabbits |> Set.iter (out '@')
+out '*' startState.snakeHead 
+
+Console.SetWindowSize (52, 27)
+Console.SetBufferSize (52, 27)
+Console.CursorVisible <- false
+mainLoop startState
