@@ -1,0 +1,111 @@
+let readFile = System.IO.File.ReadAllLines "INPUT.TXT"
+let fn (s : string) =
+    let a = s.Split ' ' |> Array.map int 
+    a.[1], a.[0]
+let n = int readFile.[1]
+type Queue<'a> = {
+    enqueue: 'a list
+    dequeue: 'a list
+}
+
+let emptyQueue = { enqueue = []; dequeue = [] }
+
+let enqueue<'a> (item:'a) (queue:Queue<'a>) = {
+    enqueue = item :: queue.enqueue
+    dequeue = queue.dequeue
+}
+
+let dequeue<'a> (queue:Queue<'a>) = 
+    match queue with
+    | { enqueue = e; dequeue = h::t } -> { enqueue = e; dequeue = t }, Some h
+    | { enqueue = e; dequeue = [] } -> 
+        match List.rev e with
+        | h :: t -> { enqueue = []; dequeue = t }, Some h
+        | _ -> { enqueue = []; dequeue = [] }, None
+
+let queueAsSeq (queue:Queue<'a>) =
+    Seq.append queue.dequeue queue.enqueue
+
+type State = {
+    snakeHead: int * int
+    snakeBody: Queue<int * int>
+    rabbits: Set<int * int>
+    acc: int
+    f: bool
+    grafon: bool
+}
+
+let out char pos = 
+    System.Console.SetCursorPosition pos
+    printfn "%c" char
+
+let rec mainLoop (s:State) (c : char list) =
+    match c with
+    |[] -> s.acc
+    |h :: t ->
+        
+        let newState =
+        
+            let newHead =
+                if s.grafon then System.Console.ReadKey() |> ignore
+                let hx, hy = s.snakeHead
+                match h with
+                | 'L' -> Some (hx - 1, hy)
+                | 'U' -> Some (hx, hy - 1)
+                | 'R' -> Some (hx + 1, hy)
+                | 'D' -> Some (hx, hy + 1)
+                | _ -> None
+
+            match newHead with
+            | Some h2 -> 
+                let body, tail = dequeue s.snakeBody
+                let canMove = (queueAsSeq body) |> Seq.forall (fun t -> t <> h2)
+                if canMove then
+                    if s.grafon then 
+                        out 'O' h2
+                        out '#' s.snakeHead
+
+
+                    if s.rabbits.Contains h2 then
+                        { 
+                            snakeHead = h2
+                            snakeBody = enqueue s.snakeHead s.snakeBody
+                            rabbits = Set.remove h2 s.rabbits
+                            acc = s.acc + 1
+                            f = true
+                            grafon = s.grafon
+                        }
+                    elif s.f then
+                        Option.iter (out ' ') tail
+                        { s with snakeHead = h2; snakeBody = enqueue s.snakeHead body;}
+                    else
+                        Option.iter (out ' ') tail
+                        { s with snakeHead = h2}
+                else
+                    s
+            | _ -> 
+                
+                s
+
+        mainLoop newState t
+let kroliki = readFile.[2..n + 1] |> Array.map fn |> Seq.ofArray
+
+let startState = {
+    snakeHead = readFile.[0]|> fn
+    snakeBody = emptyQueue 
+    rabbits = kroliki |> Set.ofSeq
+    acc = 0
+    f = false
+    grafon = true
+}
+
+if startState.grafon then
+    startState.rabbits |> Set.iter (out '@')
+    out '*' startState.snakeHead
+
+let r = readFile.[n + 2] |> List.ofSeq
+
+let q = mainLoop startState r
+System.Console.SetCursorPosition (0,0)
+printfn "%i" q
+
