@@ -1,0 +1,47 @@
+(*
+
+
+let strArr = 
+    readFile.[0..(readFile.Length - 2)]
+    |> Array.map (fun (x : string) -> x.Split (' '))
+    |>Array.map (fun (x : string[]) -> fn x.[0] (x.[1] |>List.ofSeq))
+    |>Array.iter (fun x -> printfn "%s" x)*)
+
+let readFile = System.IO.File.ReadAllLines "INPUT.TXT"
+let pass = readFile.[0]
+let chrs = readFile.[1] |> List.ofSeq
+let hash_res = int readFile.[2]
+let rec fn str1 (str2 : char list) = 
+    match str2 with
+    |[] -> str1
+    |h :: t -> 
+        //let h = [|str2.[0]|]
+        //let t = str2.[1..]
+        let r = Array.singleton h
+        let str1Arr = Array.ofSeq str1
+        let ind = Array.findIndex (fun x ->  x = '?') str1Arr
+        let new_str1 = Seq.ofArray (Array.concat [str1Arr.[0..(ind - 1)]; r; str1Arr.[(ind + 1)..]]) |> System.String.Concat
+        fn new_str1 t
+let rec fn_h acc (str_lst : char list) =
+    match str_lst with
+    |h :: t -> 
+        let c = int h
+        let acc' = acc |> (+) 1 |> (*) c 
+        let new_acc = acc' % 7999999
+        fn_h new_acc t
+    |[] -> acc 
+
+//let tegrkrgikrm ="mypassword" |> List.ofSeq
+//fn_h 0 tegrkrgikrm |> printfn "%i"
+
+//let rec jjjjj (str : string) (str2 : char list) =
+//    if String.exists (fun x -> x = '?') str then
+//        match str2 with
+//        |h :: t ->
+//            ()
+//        |[]
+//    else
+//        str
+//jjjjj "affafafafa" [] |> printfn "%s"
+let count = pass |> Seq.filter (fun x -> x = '?')|> Seq.length
+printfn "%i" count    
