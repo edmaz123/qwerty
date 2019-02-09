@@ -10,3 +10,12 @@ let rec fn (str1 : string) (str2 : string) =
         let new_str1 = Seq.ofArray (Array.concat [str1Arr.[0..(ind - 1)]; h; str1Arr.[(ind + 1)..]]) |> String.Concat
         fn new_str1 t
 http://aliev.me/runestone/BasicDS/InfixPrefixandPostfixExpressions.html
+
+
+
+let read = stdin.ReadLine().Split([|' '|], System.StringSplitOptions.RemoveEmptyEntries)
+
+let rec fn (tokens : string[]) (opstack : string list) (result : string list) =
+    
+
+printfn "%A" read
