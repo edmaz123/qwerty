@@ -9,3 +9,4 @@ let rec fn (str1 : string) (str2 : string) =
         let ind = Array.findIndex (fun x -> if x = '?' then true else false) str1Arr
         let new_str1 = Seq.ofArray (Array.concat [str1Arr.[0..(ind - 1)]; h; str1Arr.[(ind + 1)..]]) |> String.Concat
         fn new_str1 t
+http://aliev.me/runestone/BasicDS/InfixPrefixandPostfixExpressions.html
